@@ -2,7 +2,7 @@
 
 AI-assisted incident investigation. IncidentPilot reads logs and metrics from a failing service, finds the likely root cause, **cites the exact evidence** behind its diagnosis, and recommends a fix from a fixed, pre-approved list. A human stays in control of any action.
 
-> Built for the Nebius x NVIDIA Global AI Hackathon 2026. Runs on **Nebius Token Factory** with an **NVIDIA Nemotron** model.
+> Built for the Nebius x NVIDIA Global AI Hackathon 2026. Runs on **Nebius Token Factory** with a production instruction-tuned model.
 
 This repository contains the **AI investigation module and backend API**. The dashboard and database layer are built separately (see the project report).
 
@@ -62,7 +62,7 @@ pip install -r tests/requirements-dev.txt     # pytest, httpx
 Create a `.env` file in the project folder (never commit it):
 
 ```
-ENVIRONMENT=prod                 # prod = Nebius + Nemotron, local = Ollama
+ENVIRONMENT=prod                 # prod = Nebius, local = Ollama
 NEBIUS_API_KEY=your_key_here
 FRONTEND_ORIGIN=http://localhost:3000
 ```

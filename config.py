@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     def model_name(self) -> str:
         if self.ENVIRONMENT == "local":
             return "llama3"
-        return "meta-llama/Meta-Llama-3.1-70B-Instruct"
+        return "Qwen/Qwen3-235B-A22B-Instruct-2507"
 
     @property
     def api_key(self) -> str:

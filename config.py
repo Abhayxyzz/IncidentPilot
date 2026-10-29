@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     def model_name(self) -> str:
         if self.ENVIRONMENT == "local":
             return "llama3"
-        return "nvidia/nemotron-4-34b-instruct"
+        return "meta-llama/Meta-Llama-3.1-70B-Instruct"
 
     @property
     def api_key(self) -> str:

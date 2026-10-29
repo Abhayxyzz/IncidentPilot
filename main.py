@@ -17,10 +17,18 @@ logger = logging.getLogger("incidentpilot.api")
 
 app = FastAPI(title="IncidentPilot API", version="1.0")
 
-# Narrow CORS: only the frontend origin (set FRONTEND_ORIGIN in .env / host secrets)
+# Narrow CORS: set FRONTEND_ORIGIN to a comma-separated list in host secrets.
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "FRONTEND_ORIGIN",
+        "https://incidentpilot-dashboard-7z8wn8rdp-abhayxyzz.vercel.app",
+    ).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")],
+    allow_origins=allowed_origins,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

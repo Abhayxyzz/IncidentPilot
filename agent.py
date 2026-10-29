@@ -98,6 +98,7 @@ class InvestigationReport(BaseModel):
     alternatives: List[str]
     recommendations: List[RemediationRecommendation]
     limitations: List[str]
+    similar_incidents: List[Dict[str, str]] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------
@@ -307,6 +308,7 @@ def llm_synthesis_node(state: IncidentInvestigationState) -> Dict[str, Any]:
         alternatives=diagnosis.alternatives,
         recommendations=recommendations,
         limitations=limitations,
+        similar_incidents=[],
     )
     return {"report": report.model_dump(), "status": "completed"}
 

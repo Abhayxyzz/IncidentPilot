@@ -6,7 +6,7 @@ pydantic-settings>=2.2.0,<3.0.0
 
 # Database & ORM
 sqlalchemy>=2.0.28,<2.1.0
-psycopg[binary]>=3.2.0uv 
+psycopg[binary]>=3.2.0
 alembic>=1.13.1,<1.14.0
 
 # LangGraph & Agent Orchestration

@@ -157,6 +157,62 @@ def health():
     return {"status": "ok"}
 
 
+def _incident(incident_id: str) -> Dict[str, Any]:
+    evidence = get_incident_evidence(incident_id)
+    with _lock:
+        records = [dict(record) for record in INVESTIGATIONS.values() if record["incident_id"] == incident_id]
+    latest = max(records, key=lambda record: record["started_at"], default=None)
+    status = "open"
+    if latest:
+        if latest.get("approved_action_id"):
+            status = "resolved"
+        else:
+            status = "investigating" if latest["status"] in ("queued", "running") else latest["status"]
+        if latest["status"] == "completed" and not latest.get("approved_action_id"):
+            status = "action_pending"
+    return {
+        "id": incident_id,
+        "title": "Checkout returning 500s",
+        "severity": "critical",
+        "status": status,
+        "service": "api-service",
+        "suspect": "postgres",
+        "started_at": evidence.get("time_window", SEED_TIME_WINDOW)["start"],
+        "latest_investigation_id": latest["investigation_id"] if latest else None,
+    }
+
+
+@app.get("/api/incidents")
+def list_incidents():
+    return [_incident("INC-2041")]
+
+
+@app.get("/api/incidents/{incident_id}/logs")
+def get_incident_logs(incident_id: str = IncidentId):
+    return [
+        {**log, "incident_id": incident_id}
+        for log in get_incident_evidence(incident_id).get("logs", [])
+    ]
+
+
+@app.get("/api/incidents/{incident_id}")
+def get_incident(incident_id: str = IncidentId):
+    incident = _incident(incident_id)
+    evidence = get_incident_evidence(incident_id)
+    return {
+        "incident": incident,
+        "latest_investigation_id": incident["latest_investigation_id"],
+        "audit_events": [],
+        "metrics": {
+            "name": "database pool active connections",
+            "series": [metric["value"] for metric in evidence.get("metrics", [])],
+            "tail": [metric["value"] for metric in evidence.get("metrics", [])],
+            "threshold": 50,
+        },
+        "recovery_note": "",
+    }
+
+
 @app.post("/api/incidents/{incident_id}/investigate", status_code=202)
 def trigger_investigation(background_tasks: BackgroundTasks, incident_id: str = IncidentId):
     # Idempotency: a repeated trigger returns the in-flight investigation
@@ -190,6 +246,18 @@ def get_investigation(investigation_id: str):
     if record is None:
         raise ApiError(404, "investigation_not_found", "Investigation not found.")
     return record
+
+
+@app.post("/api/incidents/{incident_id}/remediations/{action_id}/approve")
+def approve_remediation(incident_id: str = IncidentId, action_id: str = Path(..., pattern=r"^[A-Za-z0-9_-]{1,64}$")):
+    with _lock:
+        records = [record for record in INVESTIGATIONS.values() if record["incident_id"] == incident_id]
+        latest = max(records, key=lambda record: record["started_at"], default=None)
+        if latest is None or latest["status"] != "completed":
+            raise ApiError(409, "investigation_not_complete", "Complete an investigation before approving a remediation.")
+        latest["status"] = "completed"
+        latest["approved_action_id"] = action_id
+    return {"status": "approved", "incident_id": incident_id, "action_id": action_id}
 
 
 @app.post("/api/demo/reset")

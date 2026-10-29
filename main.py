@@ -29,6 +29,7 @@ allowed_origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://[A-Za-z0-9-]+\.vercel\.app",
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

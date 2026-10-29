@@ -2,7 +2,7 @@ import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    ENVIRONMENT: str = "local"
+    ENVIRONMENT: str = "prod" if os.getenv("RENDER") else "local"
     NEBIUS_API_KEY: str = "fake_key_for_local"
     DATABASE_URL: str = "postgresql+psycopg://incidentpilot:incidentpilot@localhost:5432/incidentpilot"
 

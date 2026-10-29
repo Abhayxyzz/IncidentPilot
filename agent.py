@@ -29,7 +29,11 @@ LLM_ATTEMPTS = 2           # 1 initial try + 1 retry on invalid output
 # Allowlist: recommendations come from HERE, never from model text
 # --------------------------------------------------------------------------
 ACTION_CATALOG: Dict[str, Dict[str, str]] = {
-    "sim-reset-pool": {"title": "Reset simulated connection pool", "risk": "low"},
+    "sim-reset-pool": {
+        "title": "Reset simulated connection pool",
+        "risk": "low",
+        "description": "Drops idle and stuck connections in the demo pool and lets it refill.",
+    },
 }
 # deterministic signal -> allowlisted action
 SIGNAL_TO_ACTION: Dict[str, str] = {
@@ -70,6 +74,7 @@ class RemediationRecommendation(BaseModel):
     title: str
     risk: str = Field(description="low, medium, high")
     requires_approval: bool = True
+    description: str
 
 
 class RootCause(BaseModel):
@@ -293,6 +298,7 @@ def llm_synthesis_node(state: IncidentInvestigationState) -> Dict[str, Any]:
             title=ACTION_CATALOG[SIGNAL_TO_ACTION[s]]["title"],
             risk=ACTION_CATALOG[SIGNAL_TO_ACTION[s]]["risk"],
             requires_approval=True,
+            description=ACTION_CATALOG[SIGNAL_TO_ACTION[s]]["description"],
         )
         for s in signals
         if s in SIGNAL_TO_ACTION

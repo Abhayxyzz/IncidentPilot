@@ -141,8 +141,11 @@ def run_investigation(inv_id: str) -> None:
                 _update(inv_id, stage=node_name)
 
         if state.get("status") == "completed" and state.get("report"):
+            completed_at = _now()
+            started_at = datetime.fromisoformat(record["started_at"])
+            duration_s = max(0.0, (datetime.fromisoformat(completed_at) - started_at).total_seconds())
             _update(inv_id, status="completed", stage="done", report=state["report"],
-                    error=None, completed_at=_now())
+                    error=None, completed_at=completed_at, duration_s=duration_s)
         else:
             _update(inv_id, status="failed", stage="failed",
                     error=state.get("error") or "Investigation did not complete.",
@@ -175,6 +178,8 @@ def _incident(incident_id: str) -> Dict[str, Any]:
     if latest:
         if latest.get("approved_action_id"):
             status = "resolved"
+        elif latest["status"] == "failed":
+            status = "open"
         else:
             status = "investigating" if latest["status"] in ("queued", "running") else latest["status"]
         if latest["status"] == "completed" and not latest.get("approved_action_id"):
